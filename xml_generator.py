@@ -55,7 +55,7 @@ def generate_xml_flame(data_list, file_name):
 
         for i, value in enumerate(range_tuple):
             # transform child (triangles in apophysis)
-            xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[i], value, 0))
+            xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[i], value, i))
 
         # And add a default gradient
         gradient = etree.SubElement(flame, 'palette', gradient_properties())
