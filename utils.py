@@ -30,16 +30,18 @@ def position(pos):
     :return: string
     """
     # Generate transform possible positions
-    maximum = 1
-    minimum = -1
-    step = 1
-    transform_positions = []
-    # The [::-1] thing is to inverse the numpy array. Numpy array is used here for the case that step is a float.
-    for y in arange(minimum, maximum + step, step)[::-1]:
-        for x in arange(minimum, maximum + step, step):
-            transform_positions.append((x, y))
-
-    return '1 0 0 1 ' + str(transform_positions[pos][0]) + ' ' + str(transform_positions[pos][1])
+    positions = (
+        (-1, 1),
+        (0, 0),
+        (1, -1),
+        (-1, -1),
+        (1, 1),
+        (0, -1),
+        (-1, 0),
+        (1, 0),
+        (0, 1)
+    )
+    return '1 0 0 1 ' + str(positions[pos][0]) + ' ' + str(positions[pos][1])
 
 
 def flame_properties(name):
@@ -54,14 +56,14 @@ def flame_properties(name):
             'version': 'Apophisis 2.09',
             'size': '640 480',
             'center': '0 0',
-            'scale': '38.4', # 7.77 * value
+            'scale': '38.4',  # 7.77 * value
             'filter': '0.5',
             'quality': '10',
             'background': '0 0 0',
             'brightness': '4',
             'gamma': '4',
-            'gamma_threshold': '0.04' # 0.04 * value
-            }
+            'gamma_threshold': '0.04'  # 0.04 * value
+    }
 
 
 def xform_properties(variation_name, variation_value, pos):
@@ -75,6 +77,7 @@ def xform_properties(variation_name, variation_value, pos):
     """
     new_xform = {'weight': '0.5', 'color': '0', 'coefs': position(pos), variation_name: str(variation_value)}
     return new_xform
+
 
 def gradient_properties():
     """
