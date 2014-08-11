@@ -81,7 +81,7 @@ def flame_properties(name):
     }
 
 
-def xform_properties(variation_name, variation_value, pos):
+def xform_properties(variation_name, variation_value, pos, real_name):
     """
     Return a dictionary with all the parameters for a xform.
 
@@ -90,7 +90,7 @@ def xform_properties(variation_name, variation_value, pos):
     :param pos: Position of the Xform origin. Check Position function for details.
     :return:
     """
-    new_xform = {'weight': '0.5', 'color': '0', 'coefs': position(pos), variation_name: str(variation_value)}
+    new_xform = {'weight': '0.5', 'color': '0', 'coefs': position(pos), variation_name: str(variation_value), 'real_name': real_name}
     return new_xform
 
 
