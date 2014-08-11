@@ -3,9 +3,10 @@ from utils import *
 from numpy import arange
 from lxml import etree
 from itertools import product
+from utils import create_dir
 
 
-def generate_xml_flame(data_list, file_name):
+def generate_xml_flame(data_list, batch_name, output_path='./output/'):
     """
     Recibe una lista con la siguiente estructura:
 
@@ -21,7 +22,7 @@ def generate_xml_flame(data_list, file_name):
     Devuelve un objeto etree con el XML generado
 
     :param data_list: lista de listas
-    :param file_name: nombre del archivo de flames
+    :param batch_name: nombre del archivo de flames
     :return: etree
     """
 
@@ -51,7 +52,7 @@ def generate_xml_flame(data_list, file_name):
 
     # Crear el árbol XML para el archivo .flame
     # raíz
-    flames = etree.Element('Flames', name=file_name)
+    flames = etree.Element('Flames', name=batch_name)
     i = 0
     for range_tuple in all_ranges:
         # flame hijo
@@ -65,5 +66,15 @@ def generate_xml_flame(data_list, file_name):
         # Añadir un gradiente fijo por defecto
         gradient = etree.SubElement(flame, 'palette', gradient_properties())
         gradient.text = gradient_content()
+
+    # Print it to screen!
+    print(etree.tostring(flames, pretty_print=True))
+
+    # Save the XML .flame to a file
+    flame_file = output_path + batch_name + '/' + batch_name + '.flame'
+    create_dir(output_path + batch_name)
+    f = open(flame_file, 'w')
+    f.write(etree.tostring(flames, pretty_print=True))
+    f.close()
 
     return flames
