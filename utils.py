@@ -1,6 +1,21 @@
 # -*- coding: utf-8 -*-
 from numpy import arange
+import os
 
+
+def create_dir(dirname):
+    """
+    Dada una ruta, comprueba si existe y si no crea las carpetas que falten en la ruta
+    :param dirname: nombre de la carpeta o ruta
+    :return: True si se ha creado. False si ya existe.
+    """
+    if not os.path.exists(dirname):
+        print('Creando directorio "' + dirname + '"')
+        os.makedirs(dirname)
+        return True
+    else:
+        print('Directorio "' + dirname + '" ya existe, no se hace nada')
+        return False
 
 def position(pos):
     """
@@ -29,7 +44,7 @@ def position(pos):
     :param pos:
     :return: string
     """
-    # Generate transform possible positions
+    # Define possible transform positions
     positions = (
         (-1, 1),
         (0, 0),

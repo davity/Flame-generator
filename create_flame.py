@@ -12,10 +12,11 @@ args = parser.parse_args()
 print('Nombre = ' + args.name)
 
 # Data ranges, samples and variation definition
+# Formato: [min, max, numero_muestras, nombre_variacion]
 data = [
-    [1, 7, 1, 'swirl'], # N - 9 + 1
-    [0.1, 1.3, 8, 'julia'], # N + 0.1
-    [5, 12, 1, 'sinusoidal'] # N/10
+    [1, 7, 2, 'swirl'],         # N - 9 + 1
+    [0.1, 1.3, 2, 'julia'],     # N + 0.1
+    [5, 12, 2, 'sinusoidal']    # N/10
 ]
 name = 'prueba-con-funcion'
 
