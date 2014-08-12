@@ -1,35 +1,37 @@
 # -*- coding: utf-8 -*-
-import argparse
-from lxml import etree
-from render import render_flame_file
+# import argparse
+from render import render_flame_file, process_output_images, render_flame_web
 from xml_generator import generate_xml_flame
 
 
-parser = argparse.ArgumentParser(description='Create a flame file with a name')
-parser.add_argument('name', help=u'Nombre para el archivo de flames')
+# parser = argparse.ArgumentParser(description='Create a flame file with a name')
+# parser.add_argument('name', help=u'Nombre para el archivo de flames')
+#
+# args = parser.parse_args()
+# print('Nombre = ' + args.name)
 
-args = parser.parse_args()
-print('Nombre = ' + args.name)
+# DATOS DE ENTRADA
 
-# Data ranges, samples and variation definition
-# Formato: [min, max, numero_muestras, nombre_variacion]
+# Definición de los Rangos de los datos, muestras, variaciones y los parámetros a los que se asocian
+# Formato: [min, max, numero_muestras, nombre_variacion, parámetro_asociado]
 data = [
-    [1, 7, 2, 'swirl'],         # N - 9 + 1
-    [0.1, 1.3, 2, 'julia'],     # N + 0.1
-    [5, 12, 2, 'sinusoidal']    # N/10
+    [0.2, 1.5, 3, 'swirl', u'Grado Alcohólico'],    # N - 9 + 1
+    [0.1, 1.3, 3, 'julia', u'Acidez'],              # N + 0.1
+    [3, 5, 3, 'sinusoidal', u'Sulfuroso Libre']     # N/10
 ]
-name = 'prueba-con-funcion'
+batch_name = 'test-arandano'
 
-# Pass the data to the XML-Flame generator
-flames = generate_xml_flame(data, name)
 
-# Print it to screen!
-print(etree.tostring(flames, pretty_print=True))
+# PROCESAMIENTO
 
-# Save the XML .flame to a file
-f = open(name + '.flame', 'w')
-f.write(etree.tostring(flames, pretty_print=True))
-f.close()
+# Pasar la lista de datos al generador de XML-Flame
+generate_xml_flame(data, batch_name, output_path='./output/')
 
-# Call the render function to render and process all the flames
-render_flame_file(name + '.flame', name)
+# Llamar al render flam3 para que procese el archivo .flame y genere las imágenes en la carpeta correspondiente
+render_flame_file(batch_name, output_path='./output/')
+
+# Añadir a cada imagen generada un pie de imagen con la información relevante del flame
+process_output_images(batch_name, output_path='./output/')
+
+# Crear un archivo html sencillo que contenga todas las imágenes generadas
+render_flame_web(batch_name, output_path='./output/')
