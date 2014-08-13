@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from utils import *
+from utils import create_dir
 from numpy import arange
 from lxml import etree
 from itertools import product
-from utils import create_dir
 
 
 def generate_xml_flame(data_list, batch_name, output_path='./output/'):
@@ -59,13 +59,16 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
         flame = etree.SubElement(flames, 'flame', flame_properties(str(i)))
         i += 1
 
+        # Calculos para obtener los colores de las transformadas
+        cstep = 1 / float(len(range_tuple))
+        tcolors = list(arange(0, 1 + cstep, cstep))
+
         for i, value in enumerate(range_tuple):
             # transformada hija (triangulo en apophysis)
-            xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[i], value, i, parameter_names[i]))
+            xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[i], value, i, parameter_names[i], tcolors[i]))
 
         # Añadir un gradiente fijo por defecto
-        gradient = etree.SubElement(flame, 'palette', gradient_properties())
-        gradient.text = gradient_content()
+        flame = add_gradient_fr0st(flame)
 
     # Print it to screen!
     print(etree.tostring(flames, pretty_print=True))
