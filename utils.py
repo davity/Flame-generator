@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from numpy import arange
 import os
 from lxml import etree
+import re
 
 
 def create_dir(dirname):
@@ -72,7 +72,9 @@ def flame_properties(name):
             'version': 'Apophisis 2.09',
             'size': '640 480',
             'center': '0 0',
-            'scale': '38.4',  # 7.77 * value
+            'scale': '51.2',  # 6.4 * value
+            'zoom' : '1',
+            'oversample' : '1',
             'filter': '0.5',
             'quality': '10',
             'background': '0 0 0',
@@ -416,3 +418,12 @@ def add_gradient_fr0st(etree_element):
         etree_element.append(etree.fromstring(e))
 
     return etree_element
+
+def replace_in_file(regexp, input_path, output_path):
+    input = open(input_path, 'r')
+    out = open(output_path, 'w')
+
+    for line in input:
+        out.write(re.sub(regexp, '', line))
+    input.close()
+    out.close()
