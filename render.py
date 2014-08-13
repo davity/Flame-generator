@@ -35,6 +35,7 @@ def render_flame_file(batch_name, output_path='./output/'):
         envy = os.environ.copy()
         envy['prefix'] = current_batch_dir
         envy['name_enable'] = '0'  # Debe ser cero para que la opción 'prefix' funcione
+        envy['bits'] = '32'  # 32-bits enteros. El valor por defecto es 33 (32-bits  flotante) y la calidad es muy mala
 
         # Llamar a flam3 y renderizar todos los flames
         process = subprocess.Popen('./flam3/flam3-render.exe', stdin=flame_file, stdout=subprocess.PIPE,
@@ -59,7 +60,7 @@ def process_output_images(batch_name, output_path='./output/'):
     """
 
     current_batch_dir = output_path + batch_name + '/'
-    current_batch_flame_file = current_batch_dir + batch_name + '.flame'
+    current_batch_flame_file = current_batch_dir + batch_name + '_mod.flame'
 
     # Obtener todas las transformaciones de los flames, sus valores y sus parámetros
     flames_properties = get_xform_variations_text(current_batch_flame_file)
