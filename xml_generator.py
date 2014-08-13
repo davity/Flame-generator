@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from utils import *
 from utils import create_dir
-from numpy import arange
+from numpy import linspace
 from lxml import etree
 from itertools import product
 
@@ -40,8 +40,8 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
         var_name = element[3]
         param_name = element[4]
 
-        step = (maximum - minimum) / float(samples)  # Calcular el paso para la funcion arange
-        ranges.append(arange(minimum, maximum, step).tolist())
+        # Valores para la variación de la transformada
+        ranges.append(linspace(minimum, maximum, samples))
 
         # Copiar el nombre de la variación y el parámetro a otras dos listas
         variation_names.append(var_name)
@@ -59,9 +59,8 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
         flame = etree.SubElement(flames, 'flame', flame_properties(str(i)))
         i += 1
 
-        # Calculos para obtener los colores de las transformadas
-        cstep = 1 / float(len(range_tuple))
-        tcolors = list(arange(0, 1 + cstep, cstep))
+        # Obtener colores de las transformadas
+        tcolors = list(linspace(0, 1, len(range_tuple)))
 
         for i, value in enumerate(range_tuple):
             # transformada hija (triangulo en apophysis)
@@ -73,11 +72,14 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
     # Print it to screen!
     print(etree.tostring(flames, pretty_print=True))
 
-    # Save the XML .flame to a file
-    flame_file = output_path + batch_name + '/' + batch_name + '.flame'
+    # Save the XML .flame to a file with _mod to indicate the real_name parameter modification
+    flame_file = output_path + batch_name + '/' + batch_name + '_mod.flame'
     create_dir(output_path + batch_name)
     f = open(flame_file, 'w')
     f.write(etree.tostring(flames, pretty_print=True))
     f.close()
+
+    # Save another flame without the real_name parameter (a pure .flame file)
+    replace_in_file(r'real_name="[^"]*"', flame_file, output_path + batch_name + '/' + batch_name + '.flame')
 
     return flames
