@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from utils import *
-from utils import create_dir
 from numpy import linspace
 from lxml import etree
 from itertools import product
@@ -48,7 +47,6 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
         parameter_names.append(param_name)
 
     all_ranges = list(product(*ranges))
-    print('data = ' + str(all_ranges))
 
     # Crear el árbol XML para el archivo .flame
     # raíz
@@ -67,6 +65,7 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
             xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[i], value, i, parameter_names[i], tcolors[i]))
 
         # Añadir un gradiente fijo por defecto
+        # flame = add_gradient_apophysis(flame)
         flame = add_gradient_fr0st(flame)
 
     # Print it to screen!
