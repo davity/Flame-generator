@@ -15,7 +15,7 @@ def create_dir(dirname):
         os.makedirs(dirname)
         return True
     else:
-        print('Directorio "' + dirname + '" ya existe, no se hace nada')
+        # print('Directorio "' + dirname + '" ya existe, no se hace nada')
         return False
 
 def position(pos):

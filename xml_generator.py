@@ -70,7 +70,7 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
         flame = add_gradient_fr0st(flame)
 
     # Print it to screen!
-    print(etree.tostring(flames, pretty_print=True))
+    # print(etree.tostring(flames, pretty_print=True))
 
     # Save the XML .flame to a file with _mod to indicate the real_name parameter modification
     flame_file = output_path + batch_name + '/' + batch_name + '_mod.flame'
