@@ -6,7 +6,33 @@ from xml_generator import generate_xml_flame
 
 
 # PROCESAMIENTO
-def create_batch(batch_name, data, output_path='./output/', render_index=True):
+def create_batch(batch_name, data, output_path='./output/', render_html_index=True):
+    u"""
+    Renderiza todas las imágenes a partir de los datos de entrada, les añade la información del flame (variaciones
+    usadas, valores y parámetro que representa) y crea un archivo html con todas esas imágenes.
+
+    Además crea dos archivos .flame, el primero correspondiente al archivo que se renderiza y un segundo ("*_mod.flame)
+    en donde las transformadas (nodos xform del XML) tienen un parámetro adicional 'real_name' que se usa para
+    almacenar el nombre del parámetro "en la vida real" que representa.
+    Se crean dos archivos ya que algunos programas como Fr0st (alternativa a Apophysis) pueden dar errores si se
+    encuentran con parámetros no esperados como 'real_name'.
+
+    El formato de data debe ser:
+        [
+            [rng_min, rng_max, var, param],
+            [rng_min, rng_max, var, param],
+            ...
+        ]
+    Donde rng_min y rng_max son números (puede ser en coma flotante) y
+    var y param son cadenas de texto.
+
+    :param batch_name: Nombre del lote. Se usará para la carpeta, el html y los .flame
+    :param data: Lista de listas con formato [ [rng_min, rng_max, var, param], ...]
+    :param output_path: Cadena con el directorio de salida. Incluir el caracter '/' al final
+    :param render_html_index: Indica si se debe renderizar el índice de lotes en la carpeta designada por output_path
+    :return: Éxito (boolean)
+    """
+
     # Evitamos sobreescribir el lote si existe
     if os.path.isdir(output_path + batch_name):
         print(u"""
@@ -29,10 +55,20 @@ def create_batch(batch_name, data, output_path='./output/', render_index=True):
     render_flame_web(batch_name, output_path=output_path)
 
     # Crear un índice para mostrar todos los lotes existentes y un enlace al archivo html de cada lote
-    if render_index: render_web_index(output_path=output_path)
+    if render_html_index: render_web_index(output_path=output_path)
+    return True
 
 
 def create_random_batches(number_of_batches, number_of_vars=3, name_num_start=0, output_path='./output/'):
+    u"""
+    Crea un conjunto de lotes eligiendo variaciones y parámetros al azar con valores fijos de 0.5
+
+    :param number_of_batches: Número de lotes a crear
+    :param number_of_vars: Número de variaciones/transformadas por lote
+    :param name_num_start: Número de secuencia inicial del lote (por si hemos creado más aleatorios antes)
+    :param output_path: Directorio de salida
+    :return: Éxito (boolean)
+    """
     def choose_n(list, n):
         v = []
         while len(v) < (n + 1):
@@ -73,9 +109,10 @@ def create_random_batches(number_of_batches, number_of_vars=3, name_num_start=0,
 
     for i in range(len(more_name)):
         print('Creando lote de flames: ' + str((i + 1)) + '/' + str(len(more_name)))
-        create_batch(more_name[i], more_data[i], output_path=output_path, render_index=False)
+        create_batch(more_name[i], more_data[i], output_path=output_path, render_html_index=False)
 
     render_web_index(output_path=output_path)
+    return True
 
 # DATOS DE ENTRADA
 

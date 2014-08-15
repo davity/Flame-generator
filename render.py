@@ -204,6 +204,14 @@ def add_image_caption(image_path, text):
 
 
 def render_web_index(output_path='./output/'):
+    """
+    Dada una ruta a un directorio de salida de lotes, crea un archivo html conteniendo el título y la primera
+    imágen de cada lote, así como un enlace al archivo html de ese lote.
+    El archivo se crea en el mismo directorio dado por output_path.
+
+    :param output_path: Directorio donde crear el índice
+    :return: Éxito (boolean)
+    """
     dir = list(os.walk(output_path))
     try:
         os.remove(output_path + 'index.html')
@@ -227,3 +235,4 @@ def render_web_index(output_path='./output/'):
     template_output = open(output_path + 'index.html', 'w')
     template_output.write(template.render(batches=batches))
     template_output.close()
+    return True
