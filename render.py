@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from pprint import pprint
 import subprocess, sys, os
 import Image, ImageDraw, ImageFont
 import glob
@@ -67,10 +66,7 @@ def process_output_images(batch_name, output_path='./output/'):
     flames_properties = get_xform_variations_text(current_batch_flame_file)
 
     # Obtener todas las imágenes generadas por flam3 en la funcion render_flame_file
-    flame_images = []
     iterator = glob.glob(current_batch_dir + '*.png')
-    # for element in iterator:
-    #     flame_images.append(element.split('\\')[-1])
 
     # Añadir un subtítulo con la información a cada imagen
     for i, image in enumerate(iterator):
@@ -209,7 +205,6 @@ def add_image_caption(image_path, text):
 
 def render_web_index(output_path='./output/'):
     dir = list(os.walk(output_path))
-    # pprint(dir[2])
     try:
         os.remove(output_path + 'index.html')
     except OSError:
