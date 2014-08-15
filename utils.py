@@ -19,11 +19,11 @@ def create_dir(dirname):
         return False
 
 def position(pos):
-    """
-    Return the coordinates of the transform: X-axis, Y-axis and Origin (the triangle in Apophysis).
-    By default, X and Y axis are not modified, just the origin, which could be placed in the nex positions:
+    u"""
+    Devuelve unas coordenadas (X,Y) en base a unas posiciones predefinidas. Estas se usaran para
+    posicionar las transformaciones del flame (los triángulos de Apophysis).
 
-    Position Coordinates (for a step = 1)
+    Coordenadas de las posiciones
     (-1,-1)---(0,-1)---(1,-1)
         |        |        |
         |        |        |
@@ -32,20 +32,25 @@ def position(pos):
         |        |        |
     (-1, 1)---(0, 1)---(1, 1)
 
-    Note that the Y-coordinates are inverted, so, positive axis is in bottom and negative in top.
-    This is only for flame files, in Apophysis the representation is with positive at top.
+    Notar que la coordenada Y está "invertida": los valores positivos se encuentran en el eje inferior.
+    Este es el modo de almacenar las coordenadas en un archivo .flame, aunque en Apophysis se muestren
+    de la forma típica con los valores positivos en el eje superior.
 
-    Position number (pos) (for a step = 1)
-    6 --- 7 --- 8
-    |     |     |
-    3 --- 4 --- 5
-    |     |     |
-    0 --- 1 --- 2
 
-    :param pos:
-    :return: string
+    Números de posición (elegidos de este modo sin seguir ningún patrón concreto)
+    3 --- 5 --- 1
+    |     |     |
+    6 --- 2 --- 7
+    |     |     |
+    0 --- 8 --- 4
+
+    Obviamente, si deseamos inclur más de 9 transformadas en un flame, esta funcion se queda corta, pero
+    tantas transformadas en un flame típicamente no generarán más que ruido.
+
+    :param pos: Posición
+    :return: tupla con coordenadas x e y: (X,Y)
     """
-    # Define possible transform positions
+    # Definir las posibles posiciones de las transformadas
     positions = (
         (-1, 1),
         (1, -1),
@@ -62,10 +67,10 @@ def position(pos):
 
 def flame_properties(name):
     """
-    Return a dictionary with all the parameters for a flame xml node.
+    Devuelve un diccionario con los parámetros necesarios para un nodo flame de un XML .flame
 
-    :param name: Name of the flame (showed under the image in Apophysis
-    :return: dictionary
+    :param name: Nombre del flame
+    :return: diccionario
     """
     return {'name': name,
             # A bunch of nice defaults
@@ -86,28 +91,22 @@ def flame_properties(name):
 
 def xform_properties(variation_name, variation_value, pos, real_name, color_pos):
     """
-    Return a dictionary with all the parameters for a xform.
+    Dados unos datos, devuelve un diccionario con los parametros para una transformada (xform)
+    que incluyen dichos datos y otros por defecto
 
-    :param variation_name: Name of the variation. Must match one of the flam3 algorithm.
-    :param variation_value: Probability for the variation
-    :param pos: Position of the Xform origin. Check Position function for details.
-    :param color_pos: Color position for the transform
-    :return:
+    :param variation_name: Nombre de la variación. Debe coincidir con uno de los disponibles en el algoritmo flam3
+    :param variation_value: Peso de la variación
+    :param pos: Posición del origen de la transformada. Mirar función 'position' para más detalles.
+    :param color_pos: Posición del color para la transformada
+    :return: dictionary
     """
     new_xform = {'weight': '0.5', 'color': str("{:.2f}".format(color_pos)), 'coefs': position(pos), variation_name: str(variation_value), 'real_name': real_name}
     return new_xform
 
 
-def gradient_properties():
-    """
-    Return a dictionary with default values for the gradient
-    """
-    return {'count': '256', 'format': 'RGB'}
-
-
 def add_gradient_apophysis(etree_element):
     """
-    Return a etree element with an Apophysis-style gradient
+    Devuelve un elemento etree con un gradiente con el formato de Apophysis
     """
 
     gradient_text = '''
@@ -145,7 +144,9 @@ def add_gradient_apophysis(etree_element):
         00064E00065100065400065600065900075C00075F000761
         '''
 
-    gradient = etree.Element('palette', gradient_properties())
+    gradient_properties = {'count': '256', 'format': 'RGB'}
+
+    gradient = etree.Element('palette', gradient_properties)
     gradient.text = gradient_text
     etree_element.append(gradient)
 
@@ -153,7 +154,7 @@ def add_gradient_apophysis(etree_element):
 
 def add_gradient_fr0st(etree_element):
     """
-    Return a etree element with an Fr0st style gradient
+    Devuelve un elemento etree con un gradiente con el formato de Fr0st
     """
 
     gradient_text = """<color index="0" rgb="253 172 7"/>
@@ -419,11 +420,12 @@ def add_gradient_fr0st(etree_element):
 
     return etree_element
 
+
 def replace_in_file(regexp, input_path, output_path):
-    input = open(input_path, 'r')
+    input_file = open(input_path, 'r')
     out = open(output_path, 'w')
 
-    for line in input:
+    for line in input_file:
         out.write(re.sub(regexp, '', line))
     input.close()
     out.close()
