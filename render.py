@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pprint import pprint
 import subprocess, sys, os
 import Image, ImageDraw, ImageFont
 import glob
@@ -94,7 +95,7 @@ def render_flame_web(batch_name, output_path='./output/'):
         # Split para systemas windows (notar el \\ para las rutas que se obtienen de glob.glob())
         flame_images.append(element.split('\\')[-1])
 
-    # Cargar template de jinja2
+    # Cargar template de jinja2 para la página de flames
     jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('./templates/'))
     template = jinja_environment.get_template('flame_template.html')
 
@@ -184,7 +185,8 @@ def add_image_caption(image_path, text):
     """
     img = Image.open(image_path)
     old_size = img.size
-    nlines = 3
+    lines = textwrap.wrap(text, width=60)
+    nlines = len(lines)
     font_size = 16
     spacing = font_size/2
     text_start_y = old_size[1] + spacing
@@ -196,7 +198,6 @@ def add_image_caption(image_path, text):
 
     draw = ImageDraw.Draw(new_img)
     font = ImageFont.truetype("C:\\Windows\\Fonts\\consola.ttf", font_size)
-    lines = textwrap.wrap(text, width=60)
     for i, line in enumerate(lines):
         draw.text((font_size, text_start_y + i * (spacing + font_size)), line, (0, 0, 0), font=font)
 
@@ -204,3 +205,30 @@ def add_image_caption(image_path, text):
     new_img.save(image_path)
 
     return True
+
+
+def render_web_index(output_path='./output/'):
+    dir = list(os.walk(output_path))
+    # pprint(dir[2])
+    try:
+        os.remove(output_path + 'index.html')
+    except OSError:
+        print 'El archivo ' + output_path + 'index.html no existe. Creando...'
+    else:
+        print('Borrando archivo ' + output_path + 'index.html...')
+
+    batches = []
+    for e in dir[1:]:   # Saltamos el primer elemento dir que hace referencia al directorio output mismo
+        batch_name = e[0].split('/')[-1]    # Obtenemos el nombre del lote del final de la ruta actual (./output/nombre)
+        html_path = batch_name + '/' + [f for f in e[2] if ".html" in f][0]   # Ruta al archivo html del lote
+        first_image_path = batch_name + '/' + [f for f in e[2] if ".png" in f][0] # Ruta a la primera imagen del lote
+        batches.append((batch_name, html_path, first_image_path))
+
+    # Cargar template de jinja2 para la página de flames
+    jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('./templates/'))
+    template = jinja_environment.get_template('index_template.html')
+
+    # Crear el archivo de salida
+    template_output = open(output_path + 'index.html', 'w')
+    template_output.write(template.render(batches=batches))
+    template_output.close()
