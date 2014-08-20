@@ -427,5 +427,5 @@ def replace_in_file(regexp, input_path, output_path):
 
     for line in input_file:
         out.write(re.sub(regexp, '', line))
-    input.close()
+    input_file.close()
     out.close()
