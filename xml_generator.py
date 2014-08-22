@@ -51,25 +51,20 @@ def generate_xml_flame(data_list, batch_name, output_path='./output/'):
     # Crear el árbol XML para el archivo .flame
     # raíz
     flames = etree.Element('Flames', name=batch_name)
-    i = 0
-    for range_tuple in all_ranges:
+    for i, range_tuple in enumerate(all_ranges):
         # flame hijo
         flame = etree.SubElement(flames, 'flame', flame_properties(str(i)))
-        i += 1
 
         # Obtener colores de las transformadas
         tcolors = list(linspace(0, 1, len(range_tuple)))
 
-        for i, value in enumerate(range_tuple):
+        for j, value in enumerate(range_tuple):
             # transformada hija (triangulo en apophysis)
-            xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[i], value, i, parameter_names[i], tcolors[i]))
+            xform = etree.SubElement(flame, 'xform', xform_properties(variation_names[j], value, j, parameter_names[j], tcolors[j]))
 
         # Añadir un gradiente fijo por defecto
         # flame = add_gradient_apophysis(flame)
         flame = add_gradient_fr0st(flame)
-
-    # Print it to screen!
-    # print(etree.tostring(flames, pretty_print=True))
 
     # Save the XML .flame to a file with _mod to indicate the real_name parameter modification
     flame_file = output_path + batch_name + '/' + batch_name + '_mod.flame'
