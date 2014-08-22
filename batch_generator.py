@@ -61,7 +61,7 @@ def create_batch(batch_name, data, output_path='./output/', render_html_index=Tr
 
 def create_random_batches(number_of_batches, number_of_vars=3, name_num_start=0, output_path='./output/'):
     u"""
-    Crea un conjunto de lotes eligiendo variaciones y parámetros al azar con valores fijos de 0.5
+    Crea un conjunto de lotes eligiendo variaciones y parámetros al azar con valores fijos de 0.5 para cada variación
 
     :param number_of_batches: Número de lotes a crear
     :param number_of_vars: Número de variaciones/transformadas por lote
@@ -113,17 +113,3 @@ def create_random_batches(number_of_batches, number_of_vars=3, name_num_start=0,
 
     render_web_index(output_path=output_path)
     return True
-
-# DATOS DE ENTRADA
-
-# Definición de los Rangos de los datos, muestras, variaciones y los parámetros a los que se asocian
-# Formato: [min, max, numero_muestras, nombre_variacion, parámetro_asociado]
-data = [
-    [0.1, 1.0, 3, 'swirl', u'Grado Alcohólico'],
-    [0.1, 1.0, 3, 'julia', u'Sulfuroso libre'],
-    [1.0, 2.0, 3, 'sinusoidal', u'Acidez Total'],
-]
-batch_name = 'Alpha 01'
-
-create_batch(batch_name, data, output_path='./output/')
-# create_random_batches(30, 3, 21, output_path='./output/')
