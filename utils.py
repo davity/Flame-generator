@@ -2,6 +2,7 @@
 import os
 from lxml import etree
 import re
+import csv
 
 
 def create_dir(dirname):
@@ -17,6 +18,51 @@ def create_dir(dirname):
     else:
         # print('Directorio "' + dirname + '" ya existe, no se hace nada')
         return False
+
+
+def replace_in_file(regexp, input_path, output_path):
+    input_file = open(input_path, 'r')
+    out = open(output_path, 'w')
+
+    for line in input_file:
+        out.write(re.sub(regexp, '', line))
+    input_file.close()
+    out.close()
+
+
+def read_csv_data(file_path):
+    u"""
+    Lee de un fichero cvs los datos de los vinos que se desean representar.
+    Cada fila del archivo debe corresponder a un vino.
+    Cada columna del archivo corresponderá a un parámetro que se asociará a una variación
+
+    La función convierte las comas de los valores leídos a puntos para poder utilizar dichos valores en
+    Python sin problemas.
+
+    :param file_path: Ruta del fichero csv
+    :return: list
+    """
+    f = open(file_path)
+    reader = csv.reader(f, delimiter=';')
+    raw_data = []
+    for row in reader:
+        raw_data.append(row)
+
+    # Si hay datos
+    if len(raw_data) > 0 and len(raw_data[0]) > 0:
+        parameters = []
+
+        # Crear n listas vacía para los parámetros
+        for i in range(len(raw_data[0])):
+            parameters.append([])
+
+        # Introducir cada parámetro en la lista correspondiente
+        for row in raw_data:
+            for i, value in enumerate(row):
+                parameters[i].append(value.replace(',', '.'))
+    return parameters
+
+
 
 def position(pos):
     u"""
@@ -419,13 +465,3 @@ def add_gradient_fr0st(etree_element):
         etree_element.append(etree.fromstring(e))
 
     return etree_element
-
-
-def replace_in_file(regexp, input_path, output_path):
-    input_file = open(input_path, 'r')
-    out = open(output_path, 'w')
-
-    for line in input_file:
-        out.write(re.sub(regexp, '', line))
-    input_file.close()
-    out.close()
