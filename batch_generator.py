@@ -1,33 +1,69 @@
 # -*- coding: utf-8 -*-
 import os
 import random
+from numpy import linspace
+from itertools import product
 from render import render_flame_file, process_output_images, render_flame_web, render_web_index
 from xml_generator import generate_xml_flame
+from utils import read_csv_data, map_data
 
 
-# PROCESAMIENTO
+def generate_batch_data(data):
+    """
+    Genera un diccionario con la información para crear un lote de flames
+
+    Recibe una lista con la siguiente estructura:
+
+        [ [min1, max1, samples1, var_name1, param_name1], [min2, max2, samples2, var_name2, param_name2], ...]
+
+    Donde los elementos de cada sublista son:
+        min:        Mínimo del rango del parámetro. Puede ser de tipo float.
+        max:        Máximo del rango del parámetro. Puede ser de tipo float.
+        samples:    Número de partes iguales en las que dividir el rango.
+        var_name:   Nombre de la variación (ex: linear, sinusoidal, swirl...). Debe ser una cadena.
+        param_name: Nombre descriptivo del parámetro. Debe ser una cadena.
+
+    :param data: list
+    :return: dict
+    """
+
+    ranges = []             # Lista de todos los rangos
+    variation_names = []    # Lista de todas los nombres de las variaciones
+    parameter_names = []    # Lista de todos los nombres de los parámetros (de la vida real)
+
+    # Procesar la lista de datos
+    for element in data:
+        # definicion de variables por claridad, puede omitirse
+        minimum = element[0]
+        maximum = element[1]
+        samples = element[2]
+        var_name = element[3]
+        param_name = element[4]
+
+        # Muestras de valores dentro del rango actual
+        ranges.append(linspace(minimum, maximum, samples))
+
+        # Copiar el nombre de la variación y del parámetro a otras dos listas
+        variation_names.append(var_name)
+        parameter_names.append(param_name)
+
+    all_values = list(product(*ranges))
+
+    return {'var_values': all_values, 'var_names': variation_names, 'param_names': parameter_names}
+
 def create_batch(batch_name, data, output_path='./output/', render_html_index=True):
     u"""
-    Renderiza todas las imágenes a partir de los datos de entrada, les añade la información del flame (variaciones
-    usadas, valores y parámetro que representa) y crea un archivo html con todas esas imágenes.
+    Crea los archivos .flame, los renderiza, crea un html con las imágenes y actualiza el índice de lotes.
 
-    Además crea dos archivos .flame, el primero correspondiente al archivo que se renderiza y un segundo ("*_mod.flame)
-    en donde las transformadas (nodos xform del XML) tienen un parámetro adicional 'real_name' que se usa para
-    almacenar el nombre del parámetro "en la vida real" que representa.
-    Se crean dos archivos ya que algunos programas como Fr0st (alternativa a Apophysis) pueden dar errores si se
-    encuentran con parámetros no esperados como 'real_name'.
-
-    El formato de data debe ser:
-        [
-            [rng_min, rng_max, var, param],
-            [rng_min, rng_max, var, param],
-            ...
-        ]
-    Donde rng_min y rng_max son números (puede ser en coma flotante) y
-    var y param son cadenas de texto.
+    El diccionario en data debe tener el siguiente formato:
+    {
+        'var_values': [(v1, v2, v3), (v1, v2, v3), ...]         # Tuplas con valores de las variaciones de cada xform
+        'var_names': ['nombre_v1', 'nombre_v2', 'nombre_v3']    # Nombres de las variaciones
+        'param_names': ['param1', 'param2', 'param3']           # Nombres de los parámetros
+    }
 
     :param batch_name: Nombre del lote. Se usará para la carpeta, el html y los .flame
-    :param data: Lista de listas con formato [ [rng_min, rng_max, var, param], ...]
+    :param data: Diccionario
     :param output_path: Cadena con el directorio de salida. Incluir el caracter '/' al final
     :param render_html_index: Indica si se debe renderizar el índice de lotes en la carpeta designada por output_path
     :return: Éxito (boolean)
@@ -42,8 +78,8 @@ def create_batch(batch_name, data, output_path='./output/', render_html_index=Tr
         """)
         return False
 
-    # Pasar la lista de datos al generador de XML-Flame
-    generate_xml_flame(data, batch_name, output_path=output_path)
+    # Pasar la información al generador de flames
+    generate_xml_flame(data['var_values'], data['var_names'], data['param_names'], batch_name, output_path=output_path)
 
     # Llamar al render flam3 para que procese el archivo .flame y genere las imágenes en la carpeta correspondiente
     render_flame_file(batch_name, output_path=output_path)
@@ -59,57 +95,120 @@ def create_batch(batch_name, data, output_path='./output/', render_html_index=Tr
     return True
 
 
-def create_random_batches(number_of_batches, number_of_vars=3, name_num_start=0, output_path='./output/'):
-    u"""
-    Crea un conjunto de lotes eligiendo variaciones y parámetros al azar con valores fijos de 0.5 para cada variación
+def create_comparison_batch(batch_name, data, output_path='./output/', render_html_index=True):
+    """
+    Básicamente igual que create_batch, pero los datos de entradas se pasan previamente por generate_batch_data y
+    deben tener el siguiente formato:
 
-    :param number_of_batches: Número de lotes a crear
-    :param number_of_vars: Número de variaciones/transformadas por lote
-    :param name_num_start: Número de secuencia inicial del lote (por si hemos creado más aleatorios antes)
+        [
+            [min1, max1, samples1, var_name1, param_name1],
+            [min2, max2, samples2, var_name2, param_name2],
+            ...
+        ]
+
+    con una sub-lista por cada transformada.
+
+    :param batch_name: Nombre del lote. Se usará para la carpeta, el html y los .flame
+    :param data: lista de listas
+    :param output_path: Cadena con el directorio de salida. Incluir el caracter '/' al final
+    :param render_html_index: Indica si se debe renderizar el índice de lotes en la carpeta designada por output_path
+    :return: Éxito (boolean)
+    """
+    create_batch(batch_name, generate_batch_data(data), output_path=output_path, render_html_index=render_html_index)
+
+
+def create_random_batches(quantity, variations=3, sequence_name='Random', sequence_start=0, output_path='./output/'):
+    u"""
+    Crea un conjunto de lotes eligiendo variaciones y parámetros al azar
+    con pesos fijos de 0.5 para cada variación
+
+    :param quantity: Número de lotes a crear
+    :param variations: Número de variaciones/transformadas por lote
+    :param sequence_start: Número de secuencia inicial del lote
     :param output_path: Directorio de salida
     :return: Éxito (boolean)
     """
-    def choose_n(list, n):
+    def choose_n(var_list, n):
         v = []
-        while len(v) < (n + 1):
-            t = random.choice(list)
+        while len(v) < n:
+            t = random.choice(var_list)
             if not t in v:
                 v.append(t)
         return v
 
-    # Flame variation definitions
+    # Variaciones disponibles en flam3
     affine_vars = ['linear', 'sinusoidal', 'spherical', 'swirl', 'horseshoe', 'polar', 'handkerchief', 'heart', 'disc',
-                    'spiral', 'hyperbolic', 'diamond', 'ex', 'julia', 'bent', 'waves', 'fisheye', 'popcorn',
-                    'exponential', 'power', 'cosine', 'rings', 'fan', 'eyefish', 'bubble', 'cylinder', 'noise', 'blur',
-                    'gaussian_blur', 'arch', 'tangent', 'square', 'rays', 'blade', 'secant2', 'twintrian', 'cross']
+                   'spiral', 'hyperbolic', 'diamond', 'ex', 'julia', 'bent', 'waves', 'fisheye', 'popcorn',
+                   'exponential', 'power', 'cosine', 'rings', 'fan', 'eyefish', 'bubble', 'cylinder', 'noise', 'blur',
+                   'gaussian_blur', 'arch', 'tangent', 'square', 'rays', 'blade', 'secant2', 'twintrian', 'cross']
     parametric_vars = ['blob', 'pdj', 'fan2', 'rings2', 'perspective', 'julian', 'juliascope', 'radial_blur', 'pie',
                        'ngon', 'curl', 'rectangles']
 
-    # Params to choose from
+    # Parámetros a escoger
     params = [u'Grado Alcohólico', u'Acidez Total', u'Acidez Volátil', u'PH', u'Sulfuroso Total', u'Sulfuroso Libre']
 
     # Evitamos sobreescribir lotes ya existentes
-    if os.path.isdir(output_path + 'Random %03d' % name_num_start):
+    if os.path.isdir(output_path + sequence_name + ' ' + '%03d' % sequence_start):
         print(u"""
         ¡ATENCION!
         Ya existe una o más carpetas con ese nombre (Random %03d).
         Elimínela o renómbrela y vuelva a ejecutar el creador de lotes.
-        """ % name_num_start)
+        """ % sequence_start)
         return False
 
-    more_data = []
-    more_name = []
-    for number in range(number_of_batches):
+    for batch_no in range(quantity):
         data = []
-        for i, xform in enumerate(range(number_of_vars)):
-            varvar = choose_n(affine_vars, number_of_vars)
-            data.append([0.5, 0.5, 1, varvar[i], random.choice(params)])
-        more_data.append(data)
-        more_name.append('Random ' + str("%03d" % (name_num_start + number)))
+        for i, xform in enumerate(range(variations)):
+            choosen_vars = choose_n(affine_vars, variations)
+            data.append([0.5, 0.5, 1, choosen_vars[i], random.choice(params)])
 
-    for i in range(len(more_name)):
-        print('Creando lote de flames: ' + str((i + 1)) + '/' + str(len(more_name)))
-        create_batch(more_name[i], more_data[i], output_path=output_path, render_html_index=False)
+        batch_data = generate_batch_data(data)
+        batch_name = sequence_name + ' ' + str("%03d" % (sequence_start + batch_no))
+
+        print('Creando lote de flames: ' + str((batch_no + 1)) + '/' + str(quantity))
+        create_batch(batch_name, batch_data, output_path=output_path, render_html_index=False)
 
     render_web_index(output_path=output_path)
     return True
+
+
+def render_csv_file(file_path, batch_name, data_alt_dict=None, output_path='./output/',
+                    map_input_data=False, map_origin_ranges=None, map_tarjet_ranges=None):
+    """
+    Genera un lote de flames a partir de los valores de un archivo csv.
+
+    Existe la posibilidad de mapear la información de entrada de un rango de valores a otro
+    mediante los parámetros map_data, map_origin_ranges y map_tarjet_ranges.
+    Consultar función map_data en utils.py para más información.
+
+    :param file_path: ruta a archivo csv
+    :param batch_name: cadena
+    :param data_alt_dict: diccionario con var_names y param_names alternativos
+    :param output_path: directorio de salida
+    :param map_data: boolean
+    :param map_origin_ranges: lista de tuplas con los rangos de origen para cada parámetro
+    :param map_tarjet_ranges: lista de tuplas con los rangos de destino para cada parámetro
+    :return: éxito
+    """
+
+    if data_alt_dict:
+        data_dict = data_alt_dict
+    else:
+        data_dict = {
+            'var_names': ['exponential', 'horsehoe', 'fisheye'],
+            'param_names': [u'Grado Alcohólico', u'Sulfuroso libre', u'Acidez Total'],
+        }
+
+    if map_input_data:
+        data_dict['var_values'] = map_data(read_csv_data(file_path), map_origin_ranges, map_tarjet_ranges)
+    else:
+        data_dict['var_values'] = read_csv_data(file_path)
+
+    create_batch(batch_name, data_dict, output_path='./output/')
+
+
+
+
+
+
+

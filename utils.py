@@ -3,13 +3,14 @@ import os
 from lxml import etree
 import re
 import csv
+from numpy import interp
 
 
 def create_dir(dirname):
     """
     Dada una ruta, comprueba si existe y si no crea las carpetas que falten en la ruta
     :param dirname: nombre de la carpeta o ruta
-    :return: True si se ha creado. False si ya existe.
+    :return: True si se ha creado, False si ya existe.
     """
     if not os.path.exists(dirname):
         print('Creando directorio "' + dirname + '"')
@@ -34,34 +35,51 @@ def read_csv_data(file_path):
     u"""
     Lee de un fichero cvs los datos de los vinos que se desean representar.
     Cada fila del archivo debe corresponder a un vino.
-    Cada columna del archivo corresponderá a un parámetro que se asociará a una variación
+    Cada columna del archivo corresponderá al peso de la variación correspondiente
 
-    La función convierte las comas de los valores leídos a puntos para poder utilizar dichos valores en
-    Python sin problemas.
+    Cada fila se convierte en una tupla y se sustituyen las comas por puntos (estilo ingles de coma flotante)
 
     :param file_path: Ruta del fichero csv
     :return: list
     """
     f = open(file_path)
     reader = csv.reader(f, delimiter=';')
-    raw_data = []
+
+    values = []
     for row in reader:
-        raw_data.append(row)
+        v = []
+        for i, value in enumerate(row):
+            v.append(float(value.replace(',', '.')))
+        values.append(tuple(v))
 
-    # Si hay datos
-    if len(raw_data) > 0 and len(raw_data[0]) > 0:
-        parameters = []
+    return values
 
-        # Crear n listas vacía para los parámetros
-        for i in range(len(raw_data[0])):
-            parameters.append([])
 
-        # Introducir cada parámetro en la lista correspondiente
-        for row in raw_data:
-            for i, value in enumerate(row):
-                parameters[i].append(value.replace(',', '.'))
-    return parameters
+def map_data(data, origin_ranges, tarjet_ranges):
+    u"""
+    Mapea una lista de tuplas a los rangos provistos dos listas de tuplas origin_ranges y tarjet_ranges.
 
+    Cada elemento de cada tupla en los datos de entrada se mapeara utilizando
+    las tuplas de rangos correspondiente a la posición del dato en la tupla.
+    Así dato[0][0] utilizará para el mapeo origin_ranges[0] y tarjet_ranges[0],
+    dato[0][1] utilizará origin_ranges[1] y tarjet_ranges[1], etc.
+
+    Ejemplo
+    --------
+    >>> origin_ranges = ((1, 10), (1, 100))
+    >>> tarjet_ragnes = ((10, 100), (100, 10000))
+    >>> data = [(3, 15), (7, 55)]
+    >>> map_data(data, origin_ranges, tarjet_ragnes)
+    [(30.0, 1500.0), (70.0, 5500.0)]
+    """
+
+    morph = []
+    for t in data:
+        tmp = []
+        for i, n in enumerate(t):
+            tmp.append(interp(n, origin_ranges[i], tarjet_ranges[i]))
+        morph.append(tuple(tmp))
+    return morph
 
 
 def position(pos):
@@ -80,21 +98,17 @@ def position(pos):
 
     Notar que la coordenada Y está "invertida": los valores positivos se encuentran en el eje inferior.
     Este es el modo de almacenar las coordenadas en un archivo .flame, aunque en Apophysis se muestren
-    de la forma típica con los valores positivos en el eje superior.
+    con los valores positivos en el eje superior.
 
-
-    Números de posición (elegidos de este modo sin seguir ningún patrón concreto)
+    Números de posición (elegidos sin seguir ningún patrón concreto)
     3 --- 5 --- 1
     |     |     |
     6 --- 2 --- 7
     |     |     |
     0 --- 8 --- 4
 
-    Obviamente, si deseamos inclur más de 9 transformadas en un flame, esta funcion se queda corta, pero
-    tantas transformadas en un flame típicamente no generarán más que ruido.
-
-    :param pos: Posición
-    :return: tupla con coordenadas x e y: (X,Y)
+    :param pos: int
+    :return: cadena con posiciones para parametro coefs de xform
     """
     # Definir las posibles posiciones de las transformadas
     positions = (
@@ -124,8 +138,8 @@ def flame_properties(name):
             'size': '640 480',
             'center': '0 0',
             'scale': '51.2',  # 6.4 * value
-            'zoom' : '1',
-            'oversample' : '1',
+            'zoom': '1',
+            'oversample': '1',
             'filter': '0.5',
             'quality': '10',
             'background': '0 0 0',
@@ -146,7 +160,8 @@ def xform_properties(variation_name, variation_value, pos, real_name, color_pos)
     :param color_pos: Posición del color para la transformada
     :return: dictionary
     """
-    new_xform = {'weight': '0.5', 'color': str("{:.2f}".format(color_pos)), 'coefs': position(pos), variation_name: str(variation_value), 'real_name': real_name}
+    new_xform = {'weight': '0.5', 'color': str("{:.2f}".format(color_pos)), 'coefs': position(pos),
+                 variation_name: str(variation_value), 'real_name': real_name}
     return new_xform
 
 
@@ -197,6 +212,7 @@ def add_gradient_apophysis(etree_element):
     etree_element.append(gradient)
 
     return etree_element
+
 
 def add_gradient_fr0st(etree_element):
     """
