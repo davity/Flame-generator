@@ -35,13 +35,15 @@ def render_flame_file(batch_name, output_path='./output/'):
         envy = os.environ.copy()
         envy['prefix'] = current_batch_dir
         envy['name_enable'] = '0'  # Debe ser cero para que la opción 'prefix' funcione
-        envy['bits'] = '32'  # 32-bits enteros. El valor por defecto es 33 (32-bits  flotante) y la calidad es muy mala
+        envy['bits'] = '32' # Utilizar 32-bits integer
+        # Por defecto 33 (32-bits  flotante) y se generan
+        # imágenes de muy baja calidad para 'quality' bajos
 
         # Llamar a flam3 y renderizar todos los flames
         process = subprocess.Popen('./flam3/flam3-render.exe', stdin=flame_file, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, env=envy)
 
-        # Imprimir la salida de flam3 para ver que esá pasando
+        # Imprimir la salida de flam3 para ver que está pasando
         for e in iter(lambda: process.stderr.read(1), ''):
             sys.stdout.write(e)
 

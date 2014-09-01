@@ -173,7 +173,7 @@ def create_random_batches(quantity, variations=3, sequence_name='Random', sequen
 
 
 def render_csv_file(file_path, batch_name, data_alt_dict=None, output_path='./output/',
-                    map_input_data=False, map_origin_ranges=None, map_tarjet_ranges=None):
+                    map_origin_ranges=None, map_tarjet_ranges=None):
     """
     Genera un lote de flames a partir de los valores de un archivo csv.
 
@@ -185,7 +185,6 @@ def render_csv_file(file_path, batch_name, data_alt_dict=None, output_path='./ou
     :param batch_name: cadena
     :param data_alt_dict: diccionario con var_names y param_names alternativos
     :param output_path: directorio de salida
-    :param map_data: boolean
     :param map_origin_ranges: lista de tuplas con los rangos de origen para cada parámetro
     :param map_tarjet_ranges: lista de tuplas con los rangos de destino para cada parámetro
     :return: éxito
@@ -195,16 +194,16 @@ def render_csv_file(file_path, batch_name, data_alt_dict=None, output_path='./ou
         data_dict = data_alt_dict
     else:
         data_dict = {
-            'var_names': ['exponential', 'horsehoe', 'fisheye'],
-            'param_names': [u'Grado Alcohólico', u'Sulfuroso libre', u'Acidez Total'],
+            'var_names': ['noise', 'spherical', 'sinusoidal'],
+            'param_names': [u'Grado Alcohólico', u'Acidez Total', u'Sulfuroso total'],
         }
 
-    if map_input_data:
+    if map_origin_ranges:
         data_dict['var_values'] = map_data(read_csv_data(file_path), map_origin_ranges, map_tarjet_ranges)
     else:
         data_dict['var_values'] = read_csv_data(file_path)
 
-    create_batch(batch_name, data_dict, output_path='./output/')
+    create_batch(batch_name, data_dict, output_path=output_path)
 
 
 
