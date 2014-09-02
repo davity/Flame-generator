@@ -4,6 +4,10 @@ from batch_generator import create_random_batches
 from batch_generator import render_csv_file
 
 
+# --- FLAME-GENERATOR ---
+# Autor: David Morán Díaz
+# -----------------------
+
 # COMPARACIÓN DE RANGOS
 # Formato: [min, max, numero_muestras, nombre_variacion, parámetro_asociado]
 data = [
@@ -20,4 +24,4 @@ create_random_batches(3, variations=2, sequence_name='Aleatorio', sequence_start
 # GENERACION A PARTIR DE ARCHIVO CSV
 origin_ranges = ((11.3, 15.43), (4.3, 10.67), (7.68, 33.0))
 tarjet_ranges = ((0.1, 1.0), (0.1, 1.0), (1.2, 2.2))
-render_csv_file('./datos_reales.csv', 'AAAAAAEpsilon con datos reales', map_origin_ranges=origin_ranges, map_tarjet_ranges=tarjet_ranges,output_path='./output/')
+render_csv_file('./datos_reales.csv', 'Epsilon con datos reales', map_origin_ranges=origin_ranges, map_tarjet_ranges=tarjet_ranges,output_path='./output/')
