@@ -11,15 +11,15 @@ import textwrap
 def render_flame_file(batch_name, output_path='./output/'):
     u"""
     Dado un nombre de lote y una ruta de output opcional,
-    renderiza el archivo flame con flam3 y guarda las imágenes resultates en la ruta definida por el
-    output y el nombre del lote.
+    renderiza el archivo flame con flam3 y guarda las imágenes resultates en la ruta
+    definida por el output y el nombre del lote.
 
     :param batch_name: nombre del lote
     :param output_path: directorio de salida para las imágenes
     :return: boolean: Indica si la función ha tenido éxito
     """
 
-    # Crear la ruta de carpetas para el conjunto de flames que se van a renderizar (el lote)
+    # Crear la ruta de carpetas para el conjunto de flames que se van a renderizar
     current_batch_dir = output_path + batch_name + '/'
     create_dir(current_batch_dir)
     current_batch_flame_file = current_batch_dir + batch_name + '.flame'
@@ -31,7 +31,8 @@ def render_flame_file(batch_name, output_path='./output/'):
         print 'Error: El archivo "' + current_batch_flame_file + '" no existe'
         return False
     else:
-        # Establecer las variables de entorno para flam3 (en vez de por parámetro se pasar por entorno)
+        # Establecer las variables de entorno para flam3
+        # Flam3 utiliza variables de entorno en lugar de parámetros
         envy = os.environ.copy()
         envy['prefix'] = current_batch_dir
         envy['name_enable'] = '0'  # Debe ser cero para que la opción 'prefix' funcione
@@ -40,8 +41,9 @@ def render_flame_file(batch_name, output_path='./output/'):
         # imágenes de muy baja calidad para 'quality' bajos
 
         # Llamar a flam3 y renderizar todos los flames
-        process = subprocess.Popen('./flam3/flam3-render.exe', stdin=flame_file, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, env=envy)
+        process = subprocess.Popen('./flam3/flam3-render.exe', stdin=flame_file,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   env=envy)
 
         # Imprimir la salida de flam3 para ver que está pasando
         for e in iter(lambda: process.stderr.read(1), ''):
@@ -53,8 +55,9 @@ def render_flame_file(batch_name, output_path='./output/'):
 def process_output_images(batch_name, output_path='./output/'):
     u"""
     Dado un nombre de lote y una ruta de output opcional,
-    añade a cada imagen generada por la funcion render_flame_file y les añade un subtítulo
-    con las variaciones usadas, los valores de cada una de estas y a qué parámetros van asociados
+    añade a cada imagen generada por la funcion render_flame_file y les añade un
+    subtítulo con las variaciones usadas, los valores de cada una de estas y a
+    qué parámetros van asociados
 
     :param batch_name: nombre del lote
     :param output_path: directorio de salida para las imágenes
@@ -90,11 +93,12 @@ def render_flame_web(batch_name, output_path='./output/'):
     flame_images = []
     iterator = glob.glob(current_test_dir + '*.png')
     for element in iterator:
-        # Split para systemas windows (notar el \\ para las rutas que se obtienen de glob.glob())
+        # Split para systemas windows ('\\' para las rutas obtenidas de glob.glob())
         flame_images.append(element.split('\\')[-1])
 
     # Cargar template de jinja2 para la página de flames
-    jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('./templates/'))
+    jinja_environment = jinja2.Environment(
+        loader=jinja2.FileSystemLoader('./templates/'))
     template = jinja_environment.get_template('flame_template.html')
 
     # Crear el archivo de salida
@@ -107,18 +111,21 @@ def render_flame_web(batch_name, output_path='./output/'):
 
 def get_xform_variations_text(flame_file_path):
     u"""
-    Lee un archivo .flame y devuelve una lista de cadenas que contienen, para cada flame dentro del archivo y para cada
-    transformada del flame:
+    Lee un archivo .flame y devuelve una lista de cadenas que contienen, para cada
+    flame dentro del archivo y para cada transformada del flame:
         1. La variación utilizada por la transformada
         2. El valor de la variación
         3. El parámetro al que está asociada
 
-    Las cadenas están alineadas a 60 caracteres para que tengan todas la misma longitud.
+    Las cadenas están alineadas a 60 caracteres para que tengan la misma longitud.
 
     Por ejemplo, para las siguientes tres transformadas:
-        <xform coefs="1 0 0 1 -1 1" color="0"   real_name="Grado Alcoh&#243;lico" swirl="1.0"   weight="0.5"/>
-        <xform coefs="1 0 0 1 0 0" color="0"    julia="0.1" real_name="Acidez"                  weight="0.5"/>
-        <xform coefs="1 0 0 1 1 -1" color="0"   real_name="Sulfuroso Libre" sinusoidal="5.0"    weight="0.5"/>
+        <xform coefs="1 0 0 1 -1 1" color="0" real_name="Grado Alcoh&#243;lico"
+            swirl="1.0" weight="0.5"/>
+        <xform coefs="1 0 0 1 0 0" color="0" real_name="Acidez"
+            julia="0.1" weight="0.5"/>
+        <xform coefs="1 0 0 1 1 -1" color="0"  real_name="Sulfuroso Libre"
+            sinusoidal="5.0" weight="0.5"/>
     Se obtiene la salida:
         [u'swirl = 1.0000                 - Grado Alcoh\xf3lico
            julia = 0.1000                 - Acidez
@@ -128,30 +135,37 @@ def get_xform_variations_text(flame_file_path):
     :return: lista de cadenas
     """
 
-    all_vars = ['linear', 'sinusoidal', 'spherical', 'swirl', 'horseshoe', 'polar', 'handkerchief', 'heart', 'disc',
-                'spiral', 'hyperbolic', 'diamond', 'ex', 'julia', 'bent', 'waves', 'fisheye', 'popcorn', 'exponential',
-                'power', 'cosine', 'rings', 'fan', 'blob', 'pdj', 'fan2', 'rings2', 'eyefish', 'bubble', 'cylinder',
-                'perspective', 'noise', 'julian', 'juliascope', 'blur', 'gaussian_blur', 'radial_blur', 'pie', 'ngon',
-                'curl', 'rectangles', 'arch', 'tangent', 'square', 'rays', 'blade', 'secant2', 'twintrian', 'cross',
-                'disc2', 'super_shape', 'flower', 'conic', 'parabola', 'bent2', 'bipolar', 'boarders', 'butterfly',
-                'cell', 'cpow', 'curve', 'edisc', 'elliptic', 'escher', 'foci', 'lazysusan', 'loonie', 'pre_blur',
-                'modulus', 'oscilloscope', 'polar2', 'popcorn2', 'scry', 'separation', 'split', 'splits', 'stripes',
-                'wedge', 'wedge_julia', 'wedge_sph', 'whorl', 'waves2', 'exp', 'log', 'sin', 'cos', 'tan', 'sec', 'csc',
-                'cot', 'sinh', 'cosh', 'tanh', 'sech', 'csch', 'coth', 'auger', 'flux']
+    all_vars = ['linear', 'sinusoidal', 'spherical', 'swirl', 'horseshoe', 'polar',
+                'handkerchief', 'heart', 'disc', 'spiral', 'hyperbolic', 'diamond',
+                'ex', 'julia', 'bent', 'waves', 'fisheye', 'popcorn', 'exponential',
+                'power', 'cosine', 'rings', 'fan', 'blob', 'pdj', 'fan2', 'rings2',
+                'eyefish', 'bubble', 'cylinder', 'perspective', 'noise', 'julian',
+                'juliascope', 'blur', 'gaussian_blur', 'radial_blur', 'pie', 'ngon',
+                'curl', 'rectangles', 'arch', 'tangent', 'square', 'rays', 'blade',
+                'secant2', 'twintrian', 'cross', 'disc2', 'super_shape', 'flower',
+                'conic', 'parabola', 'bent2', 'bipolar', 'boarders', 'butterfly',
+                'cell', 'cpow', 'curve', 'edisc', 'elliptic', 'escher', 'foci',
+                'lazysusan', 'loonie', 'pre_blur', 'modulus', 'oscilloscope', 'polar2',
+                'popcorn2', 'scry', 'separation', 'split', 'splits', 'stripes',
+                'wedge', 'wedge_julia', 'wedge_sph', 'whorl', 'waves2', 'exp', 'log',
+                'sin', 'cos', 'tan', 'sec', 'csc', 'cot', 'sinh', 'cosh', 'tanh',
+                'sech', 'csch', 'coth', 'auger', 'flux']
 
     flames_parameters = []
     # Recorrer el xml
     flames = etree.parse(flame_file_path)
     for flame in flames.getroot():
-        # De cada flame obtener todas las xform (transformaciones, triangulos de Apophysis)
+        # De cada flame obtener todas las xform (transformaciones)
         xforms = []
         for child in flame:
             if child.tag == 'xform':
                 xforms.append(child)
 
-        # Obtener los nombres y valores de las variaciones y los parámetros, y salvarlos en una cadena
-        # cada variación y dato se ajustará a un ancho de 30 caractires añadiendo espacios al final. Tras cada variación
-        # se añadirá el parámetro al que corresponde y se ajustará la cadena final a 60 caracteres de ancho.
+        # Obtener los nombres y valores de las variaciones y los parámetros, y
+        # salvarlos en una cadena. Cada variación y dato se ajustará a un ancho de
+        # 30 caractires añadiendo espacios al final. Tras cada variación
+        # se añadirá el parámetro al que corresponde y se ajustará la cadena final a
+        # 60 caracteres de ancho.
         txt = ''
         for xform in xforms:
             # Comprobamos si la transformada tiene alguna de las variaciones posibles
@@ -172,10 +186,10 @@ def get_xform_variations_text(flame_file_path):
 
 def add_image_caption(image_path, text):
     u"""
-    Dada la ruta de una imagen y un texto, expande la imagen por la parte inferior en función
-    del número de líneas que tenga el texto. El texto se divide de 60 en 60 caractéres para obtener
-    las líneas del mismo.
-    Dentro del área expandida de la imágen se escriben las líneas de texto correspondientes.
+    Dada la ruta de una imagen y un texto, expande la imagen por la parte inferior
+    en función del número de líneas que tenga el texto. El texto se divide de
+    60 en 60 caractéres para obtener las líneas del mismo. Dentro del área expandida
+    de la imágen se escriben las líneas de texto correspondientes.
 
     :param image_path: Ruta a la imagen
     :param text: Texto a escribir en el pie de la imagen creado
@@ -197,7 +211,8 @@ def add_image_caption(image_path, text):
     draw = ImageDraw.Draw(new_img)
     font = ImageFont.truetype("C:\\Windows\\Fonts\\consola.ttf", font_size)
     for i, line in enumerate(lines):
-        draw.text((font_size, text_start_y + i * (spacing + font_size)), line, (0, 0, 0), font=font)
+        draw.text((font_size, text_start_y + i * (spacing + font_size)),
+                  line, (0, 0, 0), font=font)
 
     # new_img.show()
     new_img.save(image_path)
@@ -207,8 +222,9 @@ def add_image_caption(image_path, text):
 
 def render_web_index(output_path='./output/'):
     """
-    Dada una ruta a un directorio de salida de lotes, crea un archivo html conteniendo el título y la primera
-    imágen de cada lote, así como un enlace al archivo html de ese lote.
+    Dada una ruta a un directorio de salida de lotes, crea un archivo html
+    conteniendo el título y la primera imágen de cada lote, así como un enlace
+    al archivo html de ese lote.
     El archivo se crea en el mismo directorio dado por output_path.
 
     :param output_path: Directorio donde crear el índice
@@ -223,14 +239,18 @@ def render_web_index(output_path='./output/'):
         print('Borrando archivo ' + output_path + 'index.html...')
 
     batches = []
-    for e in dir[1:]:   # Saltamos el primer elemento dir que hace referencia al directorio output mismo
-        batch_name = e[0].split('/')[-1]    # Obtenemos el nombre del lote del final de la ruta actual (./output/nombre)
-        html_path = batch_name + '/' + [f for f in e[2] if ".html" in f][0]   # Ruta al archivo html del lote
-        first_image_path = batch_name + '/' + [f for f in e[2] if ".png" in f][0] # Ruta a la primera imagen del lote
+    for e in dir[1:]:   # Saltamos el primer elemento (mismo directorio output)
+        # Obtenemos el nombre del lote del final de la ruta actual (./output/nombre)
+        batch_name = e[0].split('/')[-1]
+        # Ruta al archivo html del lote
+        html_path = batch_name + '/' + [f for f in e[2] if ".html" in f][0]
+        # Ruta a la primera imagen del lote
+        first_image_path = batch_name + '/' + [f for f in e[2] if ".png" in f][0]
         batches.append((batch_name, html_path, first_image_path))
 
     # Cargar template de jinja2 para la página de flames
-    jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader('./templates/'))
+    jinja_environment = jinja2.Environment(
+        loader=jinja2.FileSystemLoader('./templates/'))
     template = jinja_environment.get_template('index_template.html')
 
     # Crear el archivo de salida
