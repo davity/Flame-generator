@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import subprocess, sys, os
-import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import glob
 from lxml import etree
 from utils import create_dir
